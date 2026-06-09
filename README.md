@@ -1,0 +1,1 @@
+# karabas-go-core-pdp2026
