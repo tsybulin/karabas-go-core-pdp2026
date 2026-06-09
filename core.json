@@ -1,0 +1,25 @@
+{
+    "id": "pdp2026",
+    "name": "PDP-11/70",
+    "build": "26060822",
+    "bitstream": "karabas_go_top.bin",
+    "visible": true,
+    "type": "osd",
+    "order": 2,
+    "eeprom_bank": 0,
+    "rtc_mode": 1,
+    "roms": [
+    ],
+    "osd": [
+        {"type": "T", "name": "RESET", "options": null, "default": 0, "hotkey": "F12"},
+        {"type": "T", "name": "CONT.  ", "options": null, "default": 0, "hotkey": "F11"},
+        {"type": "N", "name": "Slow   ", "options": ["Off", "On"], "default": 0, "hotkey": "F10"},
+        {"type": "N", "name": "RK Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F9"},
+        {"type": "N", "name": "RL Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F8"},
+        {"type": "N", "name": "RP Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F7"},
+        {"type": "N", "name": "PC Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F6"},
+        {"type": "N", "name": "Color", "options": ["Amber", "Green", "White"], "default": 0, "hotkey": "F5"},
+        {"type": "N", "name": "Leds   ", "options": ["Off", "On"], "default": 0, "hotkey": "F4"},
+        {"type": "N", "name": "Sound  ", "options": ["Speaker", "Audio-out", "Off"], "default": 0, "hotkey": "F3"}
+    ]
+}
