@@ -203,7 +203,7 @@ module karabas_go_top(
 	assign VGA_HS = vga_hsync ;
 	assign VGA_VS = vga_vsync ;
 	assign V_CLK  = vga_clk ;
-
+	
 	overlay#(.HDMI(1'b0)) overlay(
 		.CLK(clk_p),
 		.CLK_VGA(vga_clk),

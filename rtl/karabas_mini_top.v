@@ -227,15 +227,27 @@ module karabas_mini_top(
 	assign vgab = vgao ? sw_color == 2'b00 ? 8'd0   : sw_color == 2'b01 ? 8'd51  : 8'd255 : 8'd0 ;
 	
 	// hdmi
+	// VGA_RGB is delayed rel. to sync by overlay, so delay sync too
+	
+	reg vga_hsync_r, vga_vsync_r ;
+	reg [1:0] vga_blank_r ;
+	
+	always @(posedge vga_clk) begin
+		vga_hsync_r <= vga_hsync ;
+		vga_vsync_r <= vga_vsync ;
+		
+		vga_blank_r[1] <= vga_blank_r[0] ;
+		vga_blank_r[0] <= vga_blank ;
+	end
 	
 	hdmi_top hdmi_top(
 		.clk(vga_clk),
 		.reset(areset),
 
 		.vga_rgb(VGA_RGB),
-		.vga_hs(vga_hsync),
-		.vga_vs(vga_vsync),
-		.vga_de(~vga_blank),
+		.vga_hs(vga_hsync_r),
+		.vga_vs(vga_vsync_r),
+		.vga_de(~vga_blank_r[1]),
 
 		.tmds_p(TMDS_P),
 		.tmds_n(TMDS_N)
