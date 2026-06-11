@@ -77,8 +77,8 @@ entity mcu is
 	 
 	 -- rom loader
 	 ROMLOADER_ACTIVE : buffer std_logic := '0';
-	 ROMLOAD_ADDR: buffer std_logic_vector(31 downto 0) := x"FFFFFFFF";
-	 ROMLOAD_DATA: out std_logic_vector(7 downto 0) := (others => '0');
+	 ROMLOAD_ADDR: buffer std_logic_vector(21 downto 1) := (others => '1');
+	 ROMLOAD_DATA: out std_logic_vector(15 downto 0) := (others => '0');
 	 ROMLOAD_WR : out std_logic := '0';
 
 	 -- debug
@@ -146,8 +146,9 @@ architecture rtl of mcu is
 	 signal last_rtcr_command : std_logic := '0';
 	 
 	 -- romload addr
-	 signal tmp_romload_addr    : std_logic_vector(31 downto 0);
-	 signal prev_romload_addr   : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+	 signal tmp_romload_addr    : std_logic_vector(21 downto 0);
+	 signal prev_romload_addr   : std_logic_vector(21 downto 1) := (others => '1');
+	 signal tmp_romloader_data  : std_logic_vector(7 downto 0) := (others => '0') ;
 	 
 	-- spi fifo 
 	signal queue_di			: std_logic_vector(23 downto 0);
@@ -300,16 +301,23 @@ begin
 					when CMD_ROMBANK => 
 						case spi_do(15 downto 8) is
 							when x"00" => tmp_romload_addr(15 downto 8) <= spi_do(7 downto 0);
-							when x"01" => tmp_romload_addr(23 downto 16) <= spi_do(7 downto 0);
-							when x"02" => tmp_romload_addr(31 downto 24) <= spi_do(7 downto 0);
+							when x"01" => tmp_romload_addr(21 downto 16) <= spi_do(5 downto 0);
 							when others => null;
 						end case;
 						
 					-- romdata
-					when CMD_ROMDATA => 
-						ROMLOAD_ADDR(31 downto 8) <= tmp_romload_addr(31 downto 8);
-						ROMLOAD_ADDR(7 downto 0) <= spi_do(15 downto 8);
-						ROMLOAD_DATA(7 downto 0) <= spi_do(7 downto 0);
+					when CMD_ROMDATA =>
+						case spi_do(8) is
+							when '0' => -- low byte
+								tmp_romloader_data <= spi_do(7 downto 0) ;
+								tmp_romload_addr(7 downto 0) <= spi_do(15 downto 8);
+								
+							when '1' => -- high byte
+								ROMLOAD_DATA <= spi_do(7 downto 0) & tmp_romloader_data ;
+								ROMLOAD_ADDR(21 downto 1) <= tmp_romload_addr(21 downto 8) & spi_do(15 downto 9) ;
+
+							when others => null;
+						end case ;
 						
 					when CMD_ROMLOADER =>
 						ROMLOADER_ACTIVE <= spi_do(0);

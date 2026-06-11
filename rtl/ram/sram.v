@@ -11,24 +11,44 @@ module sram(
 	output reg	[20:0]	MA,
 	inout	 		[15:0]	MD,
 	output reg	[1:0]		MWR_N,
-	output reg	[1:0]		MRD_N
+	output reg	[1:0]		MRD_N,
+
+	input						loader_wr,
+	input			[21:1]	loader_addr,
+	input			[15:0]	loader_data
 ) ;
 
-	localparam [3:0] MS_INIT    = 0 ;
-	localparam [3:0] MS_IDLE    = 1 ;
-	localparam [3:0] MS_READ1   = 2 ;
-	localparam [3:0] MS_READ2   = 3 ;
-	localparam [3:0] MS_READ3   = 4 ;
-	localparam [3:0] MS_WRITE1  = 5 ;
-	localparam [3:0] MS_WRITE2  = 6 ;
-	localparam [3:0] MS_WRITE3  = 7 ;
-	localparam [3:0] MS_WRITE4  = 8 ;
+	localparam [3:0] MS_INIT   = 0 ;
+	localparam [3:0] MS_IDLE   = 1 ;
+	localparam [3:0] MS_READ1  = 2 ;
+	localparam [3:0] MS_READ2  = 3 ;
+	localparam [3:0] MS_READ3  = 4 ;
+	localparam [3:0] MS_WRITE1 = 5 ;
+	localparam [3:0] MS_WRITE2 = 6 ;
+	localparam [3:0] MS_WRITE3 = 7 ;
+	localparam [3:0] MS_WRITE4 = 8 ;
+	localparam [3:0] MS_LOAD1  = 9 ;
+	localparam [3:0] MS_LOAD2  = 10 ;
+	localparam [3:0] MS_LOAD3  = 11 ;
+	localparam [3:0] MS_LOAD4  = 12 ;
 
 	reg [3:0] mem_state = MS_INIT ;
 	
 	reg mwe ;
 	reg [15:0] memdata_o = 16'd0 ;
 	assign MD = mwe ? memdata_o : 16'hZZZZ ;
+	
+	reg l_g = 1'b0 ;
+	reg [21:1] l_a ;
+	reg [15:0] l_d ;
+	
+	always @(posedge clk_p)
+		if (loader_wr == 1'b1) begin
+			l_a <= loader_addr ;
+			l_d <= loader_data ;
+			l_g <= 1'b1 ;
+		end else
+			l_g <= 1'b0 ;
 	
 	always @(posedge clk_p) begin
 		case (mem_state)
@@ -42,7 +62,10 @@ module sram(
 			end
 			
 			MS_IDLE : begin
-				if (sdram_stb == 1'b1) begin
+				if (l_g == 1'b1) begin
+					MA <= l_a ;
+					mem_state <= MS_LOAD1 ;
+				end else if (sdram_stb == 1'b1) begin
 					MA <= sdram_adr ;
 					if (sdram_we == 1'b0)
 						mem_state <= MS_READ1 ;
@@ -93,6 +116,27 @@ module sram(
 					sdram_ack <= 1'b0 ;
 					mem_state <= MS_IDLE ;
 				end
+			end
+
+			MS_LOAD1 : begin
+				memdata_o <= l_d ;
+				mwe <= 1'b1 ;
+				mem_state <= MS_LOAD2 ;
+			end
+
+			MS_LOAD2 : begin
+				MWR_N <= 2'b00 ;
+				mem_state <= MS_LOAD3 ;
+			end
+
+			MS_LOAD3 : begin
+				MWR_N <= 2'b11 ;
+				mem_state <= MS_LOAD4 ;
+			end
+			
+			MS_LOAD4 : begin
+				mwe <= 1'b0 ;
+				mem_state <= MS_IDLE ;
 			end
 		endcase
 	end
