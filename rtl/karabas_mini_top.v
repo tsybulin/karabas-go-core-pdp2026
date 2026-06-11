@@ -103,8 +103,8 @@ module karabas_mini_top(
 	
 	// ROM Loader
 	wire loader_act, loader_wr ;
-	wire [31:0] loader_addr ;
-	wire [7:0] loader_data ;
+	wire [21:1] loader_addr ;
+	wire [15:0] loader_data ;
 	
 	// OSD cmd
 	wire [15:0] softsw_command, osd_command ;
@@ -115,7 +115,7 @@ module karabas_mini_top(
 	wire [7:0] leds ;
 	
 	// DEBUG
-	wire [15:0] debug_addr  ;
+	wire [15:0] debug_addr ;
 	wire [15:0] debug_data ;
 	
 	mcu mcu(
@@ -277,6 +277,22 @@ module karabas_mini_top(
 	
 	// PDP
 	
+	reg mcu_load = 1'b1 ;
+	reg prev_loader_act = 1'b0 ;
+	reg [1:0] buttons = 2'b11 ;
+	
+	always @(posedge clk_p) begin
+		buttons[1] <= ~(sw_cont | hw_btn[0]) ;
+		buttons[0] <= ~(sw_reset | hw_btn[1] | mcu_load) ;
+		
+		if (loader_act != prev_loader_act) begin
+			prev_loader_act <= loader_act ;
+			if (prev_loader_act == 1'b1) begin
+				mcu_load <= 1'b0 ;
+			end
+		end
+	end
+		
 	pdp_top mainboard(
 		.clk50(clk_p),
 		.clk_p(clk_p),
@@ -284,7 +300,7 @@ module karabas_mini_top(
 		.sdclock(sdclock),
 		.clkrdy(clkready),
 		.rst_n(1'b1),
-		.button({~(sw_cont || hw_btn[0]), ~(sw_reset || hw_btn[1])}),
+		.button(buttons),
 		.sw_slow(sw_slow),
 		.sw_bank(sw_bank),
 		.MA(MA),
@@ -299,7 +315,10 @@ module karabas_mini_top(
 		.irps_rxd(tx),
 		.rtc_a(rtc_addr),
 		.rtc_di(rtc_do),
-		.leds(leds)
+		.leds(leds),
+		.loader_wr(loader_wr),
+		.loader_addr(loader_addr),
+		.loader_data(loader_data)
 	) ;
 	
 endmodule

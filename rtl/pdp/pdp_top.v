@@ -36,7 +36,12 @@ module pdp_top(
 	output			[7:0]		rtc_a,
 	input				[7:0]		rtc_di,
 	
-	output			[7:0]		leds
+	output			[7:0]		leds,
+
+	// ROM LOADER
+	input						loader_wr,
+	input			[21:1]	loader_addr,
+	input			[15:0]	loader_data
 ) ;
 
 	//********************************************
@@ -86,7 +91,10 @@ module pdp_top(
 		.MA(MA),
 		.MD(MD),
 		.MWR_N(MWR_N),
-		.MRD_N(MRD_N)
+		.MRD_N(MRD_N),
+		.loader_wr(loader_wr),
+		.loader_addr(loader_addr),
+		.loader_data(loader_data)
 	) ;
 
 	//************************************
