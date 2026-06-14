@@ -224,7 +224,7 @@ module karabas_go_top(
 	wire vgao, audio_o, vga_blank ;
 	reg  audio_i ;
 	
-	always @(posedge clk_p)
+	always @(posedge clk_n)
 		case (sw_sound)
 			2'b00 : begin
 				BEEPER <= audio_o ;
@@ -265,7 +265,7 @@ module karabas_go_top(
 	
 	// AUDIO
 	dac vt100dac(
-		.clk(clk_p),
+		.clk(clk_n),
 		.speaker(audio_i),
 		.din(DAC_DAT),
 		.lrck(DAC_LRCK),
