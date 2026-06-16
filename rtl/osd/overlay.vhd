@@ -321,7 +321,7 @@ begin
 					  when x"01" => vram_wr <= "0"; osd_overlay <= osd_command(0); -- osd
 					  when x"02" => 
 							vram_wr <= "0";
-							if (osd_command(7 downto 4) /= "1000") then
+							if (osd_command(7 downto 4) /= "1000" and osd_command(7 downto 4) /= "1001") then
 								osd_popup <= osd_command(0) ; -- popup
 							end if ;
 					  when X"10"  => vram_wr <= "0"; addr_write(4 downto 0) <= osd_command(4 downto 0); -- x: 0...32

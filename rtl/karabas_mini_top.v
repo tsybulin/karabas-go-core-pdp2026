@@ -90,6 +90,7 @@ module karabas_mini_top(
 	wire sw_reset, sw_cont, sw_slow, sw_leds ;
 	wire [1:0] sw_color, sw_sound ;
 	wire [7:0] sw_bank ;
+	wire [2:0] sw_bank_offset ;
 	
 	// RTC
 	wire [7:0] rtc_addr, rtc_di, rtc_do ;
@@ -252,14 +253,17 @@ module karabas_mini_top(
 		.tmds_p(TMDS_P),
 		.tmds_n(TMDS_N)
 	) ;
-
-	wire [15:0] audio_l = {1'b0, audio_o, 14'b0};
-	wire [15:0] audio_r = {1'b0, audio_o, 14'b0};
+	
+	reg [15:0] audio_lr = 16'b0 ;
+	
+	always @(posedge clk_n) begin
+		audio_lr <= sw_sound == 2'b01 ? 16'b0 : {1'b0, audio_o, 14'b0}; ;
+	end
 
 	// PWM DAC
 	
-	dac dac_l(.I_CLK(clk_p), .I_RESET(areset), .I_DATA({2'b00, !audio_l[15], audio_l[14:4], 2'b00}), .O_DAC(AUDIO_L)) ;
-	dac dac_r(.I_CLK(clk_p), .I_RESET(areset), .I_DATA({2'b00, !audio_l[15], audio_l[14:4], 2'b00}), .O_DAC(AUDIO_R)) ;
+	dac dac_l(.I_CLK(clk_n), .I_RESET(areset), .I_DATA({2'b00, !audio_lr[15], audio_lr[14:4], 2'b00}), .O_DAC(AUDIO_L)) ;
+	dac dac_r(.I_CLK(clk_n), .I_RESET(areset), .I_DATA({2'b00, !audio_lr[15], audio_lr[14:4], 2'b00}), .O_DAC(AUDIO_R)) ;
 
 	// SOFT SWITCHES
 	
@@ -269,6 +273,7 @@ module karabas_mini_top(
 		.sw_reset(sw_reset),
 		.sw_cont(sw_cont),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.sw_color(sw_color),
 		.sw_leds(sw_leds),
@@ -302,6 +307,7 @@ module karabas_mini_top(
 		.rst_n(1'b1),
 		.button(buttons),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.MA(MA),
 		.MD(MD),

@@ -14,6 +14,7 @@ module pdp_top(
 	input					rst_n,
 	input 		[1:0] button,
 	input					sw_slow,			// переключатели конфигурации
+	input			[2:0] sw_bank_offset,
 	input			[7:0] sw_bank,
 
    // Интерфейс SRAM
@@ -112,6 +113,7 @@ module pdp_top(
 		.bt_terminal_rst(1'b0),         // сброс терминальной подсистемы
 		.bt_timer(1'b0),               // выключатель таймера
 		
+		.sw_bank_offset(sw_bank_offset),
 		.sw_diskbank(sw_bank),   // выбор дискового банка
 		.sw_cpuslow(slow_filter[1]),             // режим замедления процессора
 		

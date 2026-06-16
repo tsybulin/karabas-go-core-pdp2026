@@ -1,7 +1,7 @@
 {
     "id": "pdp2026",
     "name": "PDP-11/70",
-    "build": "26061220",
+    "build": "26061619",
     "bitstream": "karabas_minig_top.bin",
     "visible": true,
     "type": "osd",
@@ -14,12 +14,14 @@
     "osd": [
         {"type": "T", "name": "RESET", "options": null, "default": 0, "hotkey": "F12"},
         {"type": "T", "name": "CONT.  ", "options": null, "default": 0, "hotkey": "F11"},
-        {"type": "N", "name": "Slow   ", "options": ["Off", "On"], "default": 0, "hotkey": "F10"},
-        {"type": "N", "name": "RK Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F9"},
-        {"type": "N", "name": "RL Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F8"},
-        {"type": "N", "name": "RP Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F7"},
-        {"type": "N", "name": "PC Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "F6"},
-        {"type": "N", "name": "Color", "options": ["Amber", "Green", "White"], "default": 0, "hotkey": "F5"},
-        {"type": "N", "name": "Leds   ", "options": ["Off", "On"], "default": 0, "hotkey": "F4"}
+        {"type": "N", "name": "Slow   ", "options": ["Off", "On"], "default": 0, "hotkey": "Menu+F10"},
+        {"type": "S", "name": "Skip   ", "options": ["0", "8GB", "16GB", "24GB", "32GB", "40GB", "48GB", "56GB"], "default": 0, "hotkey": "Menu+F9"},
+        {"type": "N", "name": "RK Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "Menu+F9"},
+        {"type": "N", "name": "RL Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "Menu+F8"},
+        {"type": "N", "name": "RP Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "Menu+F7"},
+        {"type": "N", "name": "PC Bank", "options": ["Bank 0", "Bank 1", "Bank 2", "Bank 3"], "default": 0, "hotkey": "Menu+F6"},
+        {"type": "N", "name": "Color", "options": ["Amber", "Green", "White"], "default": 0, "hotkey": "Menu+F5"},
+        {"type": "N", "name": "Leds   ", "options": ["Off", "On"], "default": 0, "hotkey": "Menu+F4"},
+        {"type": "N", "name": "Sound  ", "options": ["Audio-out", "Off"], "default": 0, "hotkey": "Menu+F3"}
     ]
 }

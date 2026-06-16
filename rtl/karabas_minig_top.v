@@ -91,6 +91,7 @@ module karabas_minig_top(
 	wire sw_reset, sw_cont, sw_slow, sw_leds ;
 	wire [1:0] sw_color, sw_sound ;
 	wire [7:0] sw_bank ;
+	wire [2:0] sw_bank_offset ;
 	
 	// RTC
 	wire [7:0] rtc_addr, rtc_di, rtc_do ;
@@ -258,7 +259,7 @@ module karabas_minig_top(
 	reg audio_ff = 1'b0 ;
 	
 	always @(posedge clk_n) begin
-		audio_ff <= audio_o ;
+		audio_ff <= sw_sound == 2'b01 ? 1'b0 : audio_o ;
 	end
 	
 	dac vt100dac(
@@ -277,6 +278,7 @@ module karabas_minig_top(
 		.sw_reset(sw_reset),
 		.sw_cont(sw_cont),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.sw_color(sw_color),
 		.sw_leds(sw_leds),
@@ -310,6 +312,7 @@ module karabas_minig_top(
 		.rst_n(1'b1),
 		.button(buttons),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.MA(MA),
 		.MD(MD),

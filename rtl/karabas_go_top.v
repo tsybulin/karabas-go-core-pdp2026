@@ -104,6 +104,7 @@ module karabas_go_top(
 	wire sw_reset, sw_cont, sw_slow, sw_leds ;
 	wire [1:0] sw_color, sw_sound ;
 	wire [7:0] sw_bank ;
+	wire [2:0] sw_bank_offset ;
 	
 	// RTC
 	wire [7:0] rtc_addr, rtc_di, rtc_do ;
@@ -280,6 +281,7 @@ module karabas_go_top(
 		.sw_reset(sw_reset),
 		.sw_cont(sw_cont),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.sw_color(sw_color),
 		.sw_leds(sw_leds),
@@ -313,6 +315,7 @@ module karabas_go_top(
 		.rst_n(1'b1),
 		.button(buttons),
 		.sw_slow(sw_slow),
+		.sw_bank_offset(sw_bank_offset),
 		.sw_bank(sw_bank),
 		.MA(MA),
 		.MD(MD),
