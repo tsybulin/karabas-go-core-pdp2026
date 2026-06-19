@@ -47,6 +47,9 @@ module karabas_mini_top(
 	//---------------------------	
 	output				AUDIO_L,
 	output				AUDIO_R,
+	output				FLASH_CS_N,
+	output				FLASH_WP_N,
+	output				FLASH_HOLD_N,
 
 	//--------- MCU ------------------
 	input					MCU_CS_N,
@@ -255,16 +258,46 @@ module karabas_mini_top(
 	) ;
 	
 	reg [15:0] audio_lr = 16'b0 ;
+	reg audio_i = 1'b0 ;
 	
 	always @(posedge clk_n) begin
-		audio_lr <= sw_sound == 2'b01 ? 16'b0 : {1'b0, audio_o, 14'b0}; ;
+		case (sw_sound)
+			2'b00 : begin
+				audio_lr <= {1'b0, audio_o, 14'b0} ;
+				audio_i <= 1'b0 ;
+			end
+
+			2'b01 : begin
+				audio_lr <= 16'b0 ;
+				audio_i <= audio_o ;
+			end
+
+			2'b10 : begin
+				audio_lr <= 16'b0 ;
+				audio_i <= 1'b0 ;
+			end
+
+			2'b11 : begin
+				audio_lr <= 16'b0 ;
+				audio_i <= 1'b0 ;
+			end
+		endcase
 	end
 
 	// PWM DAC
 	
 	dac dac_l(.I_CLK(clk_n), .I_RESET(areset), .I_DATA({2'b00, !audio_lr[15], audio_lr[14:4], 2'b00}), .O_DAC(AUDIO_L)) ;
 	dac dac_r(.I_CLK(clk_n), .I_RESET(areset), .I_DATA({2'b00, !audio_lr[15], audio_lr[14:4], 2'b00}), .O_DAC(AUDIO_R)) ;
-
+	
+	// Alt DAC on Flash pins
+	adac PCM5102(
+		.clk(clk_n),
+		.speaker(audio_i),
+		.din(FLASH_HOLD_N), // P12 = flash pin 7
+		.bck(FLASH_WP_N),   // N12 = flash pin 3
+		.lrck(FLASH_CS_N)    // T3  = flash pin 1
+	) ;
+	
 	// SOFT SWITCHES
 	
 	soft_switches sosw(
