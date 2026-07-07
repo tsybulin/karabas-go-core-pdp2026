@@ -42,7 +42,14 @@ module pdp_top(
 	// ROM LOADER
 	input						loader_wr,
 	input			[21:1]	loader_addr,
-	input			[15:0]	loader_data
+	input			[15:0]	loader_data,
+	
+	// FILE LOADER
+	input							fload_state,
+	input			[7:0]			fload_slot,
+	input			[15:0]		fload_size,
+	input			[7:0]			fload_data,
+	input							fload_wr
 ) ;
 
 	//********************************************
@@ -148,7 +155,13 @@ module pdp_top(
 		.cons_dispreg_leds(cons_dispreg_leds),
 
 		.rtc_a(rtc_a),
-		.rtc_di(rtc_di)
+		.rtc_di(rtc_di),
+
+		.fload_state(fload_state),
+		.fload_slot(fload_slot),
+		.fload_size(fload_size),
+		.fload_data(fload_data),
+		.fload_wr(fload_wr)
 	);
 	
 endmodule

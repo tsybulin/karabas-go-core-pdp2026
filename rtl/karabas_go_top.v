@@ -121,6 +121,11 @@ module karabas_go_top(
 	wire [21:1] loader_addr ;
 	wire [15:0] loader_data ;
 	
+	// FILE Loader
+	wire fload_state, fload_wr ;
+	wire [7:0]  fload_slot, fload_data ;
+	wire [15:0] fload_size ;
+	
 	// OSD cmd
 	wire [15:0] softsw_command, osd_command ;
 	
@@ -184,6 +189,12 @@ module karabas_go_top(
 		.ROMLOAD_ADDR(loader_addr),
 		.ROMLOAD_DATA(loader_data),
 		.ROMLOAD_WR(loader_wr),
+		
+		.FILELOAD_STATE(fload_state),
+		.FILELOAD_SLOT(fload_slot),
+		.FILELOAD_SIZE(fload_size),
+		.FILELOAD_DATA(fload_data),
+		.FILELOAD_WR(fload_wr),
 
 		.SOFTSW_COMMAND(softsw_command),	
 		.OSD_COMMAND(osd_command),
@@ -332,7 +343,12 @@ module karabas_go_top(
 		.leds(leds),
 		.loader_wr(loader_wr),
 		.loader_addr(loader_addr),
-		.loader_data(loader_data) 
+		.loader_data(loader_data),
+		.fload_state(fload_state),
+		.fload_slot(fload_slot),
+		.fload_size(fload_size),
+		.fload_data(fload_data),
+		.fload_wr(fload_wr)
 	) ;
 	
 endmodule

@@ -80,6 +80,13 @@ entity mcu is
 	 ROMLOAD_ADDR: buffer std_logic_vector(21 downto 1) := (others => '1');
 	 ROMLOAD_DATA: out std_logic_vector(15 downto 0) := (others => '0');
 	 ROMLOAD_WR : out std_logic := '0';
+	 
+	 -- file loader
+	 FILELOAD_STATE : buffer std_logic := '0' ;
+	 FILELOAD_SLOT	: out std_logic_vector(7 downto 0) := (others => '0') ;
+	 FILELOAD_SIZE	: out std_logic_vector(15 downto 0) := (others => '0') ;
+	 FILELOAD_DATA	: out std_logic_vector(7 downto 0) := (others => '0') ;
+	 FILELOAD_WR	: out std_logic := '0';
 
 	 -- debug
 	 DEBUG_ADDR : in std_logic_vector(15 downto 0) := (others => '0');
@@ -114,7 +121,15 @@ architecture rtl of mcu is
 
 	constant CMD_OSD 			: std_logic_vector(7 downto 0) := x"20";
 	constant CMD_DEBUG_ADDR : std_logic_vector(7 downto 0) := x"30";
-	constant CMD_DEBUG_DATA : std_logic_vector(7 downto 0) := x"31";	
+	constant CMD_DEBUG_DATA : std_logic_vector(7 downto 0) := x"31";
+
+	constant CMD_IOCTL_SLOT	 : std_logic_vector(7 downto 0) := x"50" ; -- slot number 0..3
+	constant CMD_IOCTL_SIZE  : std_logic_vector(7 downto 0) := x"51" ; -- file size 0..7
+	constant CMD_IOCTL_BANK  : std_logic_vector(7 downto 0) := x"52" ;
+	constant CMD_IOCTL_DATA  : std_logic_vector(7 downto 0) := x"53" ;
+	constant CMD_IOCTL_EXT   : std_logic_vector(7 downto 0) := x"54" ; -- 0..3
+	constant CMD_IOCTL_STATE : std_logic_vector(7 downto 0) := x"55" ; -- 1 active, 0 inactive
+
 	constant CMD_HW_SETUP	: std_logic_vector(7 downto 0) := x"F9"; 
 	constant CMD_RTC 			: std_logic_vector(7 downto 0) := x"FA";
 	constant CMD_FLASHBOOT  : std_logic_vector(7 downto 0) := x"FB";
@@ -149,6 +164,9 @@ architecture rtl of mcu is
 	 signal tmp_romload_addr    : std_logic_vector(21 downto 0);
 	 signal prev_romload_addr   : std_logic_vector(21 downto 1) := (others => '1');
 	 signal tmp_romloader_data  : std_logic_vector(7 downto 0) := (others => '0') ;
+	 
+	 signal tmp_fileload_addr  : std_logic_vector(7 downto 0) := (others => '1') ;
+	 signal prev_fileload_addr : std_logic_vector(7 downto 0) := (others => '1') ;
 	 
 	-- spi fifo 
 	signal queue_di			: std_logic_vector(23 downto 0);
@@ -321,6 +339,24 @@ begin
 						
 					when CMD_ROMLOADER =>
 						ROMLOADER_ACTIVE <= spi_do(0);
+						
+					-- file loader
+					when CMD_IOCTL_STATE =>
+						FILELOAD_STATE <= spi_do(0) ;
+						
+					when CMD_IOCTL_SIZE =>
+						case spi_do(15 downto 8) is
+							when x"00" => FILELOAD_SIZE(7 downto 0) <= spi_do(7 downto 0) ;
+							when x"01" => FILELOAD_SIZE(15 downto 8) <= spi_do(7 downto 0) ;
+							when others => null;
+						end case ;
+						
+					when CMD_IOCTL_SLOT =>
+						FILELOAD_SLOT <= spi_do(7 downto 0) ;
+						
+					when CMD_IOCTL_DATA =>
+						tmp_fileload_addr <= spi_do(15 downto 8) ;
+						FILELOAD_DATA <= spi_do(7 downto 0) ;
 							
 					-- rtc 
 					when CMD_RTC =>						
@@ -369,7 +405,7 @@ begin
 	-- romload wr signal
 	process (CLK)
 	begin
-		if rising_edge(CLK) then 
+		if rising_edge(CLK) then
 			ROMLOAD_WR <= '0';
 			if (prev_romload_addr /= ROMLOAD_ADDR and ROMLOADER_ACTIVE = '1') then 
 				ROMLOAD_WR <= '1';
@@ -377,6 +413,16 @@ begin
 			end if;
 		end if;
 	end process;
+	
+	process (CLK) begin
+		if rising_edge(CLK) then
+			FILELOAD_WR <= '0' ;
+			if (prev_fileload_addr /= tmp_fileload_addr AND FILELOAD_STATE = '1') then
+				prev_fileload_addr <= tmp_fileload_addr ;
+				FILELOAD_WR <= '1' ;
+			end if ;
+		end if ;
+	end process ;
 
   --------------------------------------------------------------------------
   -- ds1307 emulation (rtc_type = 1)

@@ -69,7 +69,14 @@ module topboard22 (
 	output	[2:0]		cons_dispreg_leds,
 
 	output			[7:0]		rtc_a,
-	input				[7:0]		rtc_di
+	input				[7:0]		rtc_di,
+
+	// FILE LOADER
+	input							fload_state,
+	input			[7:0]			fload_slot,
+	input			[15:0]		fload_size,
+	input			[7:0]			fload_data,
+	input							fload_wr
 );
 
 wire        sys_init;         // общий сброс
@@ -167,10 +174,6 @@ wire         rh70_mosi ;    // mosi от DB
 wire         rh70_cs ;      // cs от DB
 wire         rh70_sclk ;
 
-wire         pr11_mosi;
-wire         pr11_cs;
-wire         pr11_sclk;
-
 wire         pp11_mosi;
 wire         pp11_cs;
 wire         pp11_sclk;
@@ -180,8 +183,6 @@ wire        rk_sdreq;       // запрос доступа
 reg         rk_sdack;       // разрешение доступа
 wire        rh70_sdreq ;
 reg         rh70_sdack ; 
-wire        pr11_sdreq;       // запрос доступа
-reg         pr11_sdack;       // разрешение доступа
 wire        pp11_sdreq;       // запрос доступа
 reg         pp11_sdack;       // разрешение доступа
 
@@ -541,18 +542,11 @@ pr11 paper_reader(
 	.irq(pr11_irq),
 	.iack(pr11_iack),
 
-	// интерфейс SD-карты
-   .sdcard_cs(pr11_cs), 
-   .sdcard_mosi(pr11_mosi), 
-   .sdcard_miso(sdcard_miso), 
-   .sdcard_sclk(pr11_sclk),
-
-   .sdclock(sdclock),
-   .sdreq(pr11_sdreq),
-   .sdack(pr11_sdack),
-   
-// Адрес массива дисков на карте
-   .start_offset({sw_bank_offset, sw_diskbank[7:6], 22'h31840})
+	.fload_state(fload_state),
+	.fload_slot(fload_slot),
+	.fload_size(fload_size),
+	.fload_data(fload_data),
+	.fload_wr(fload_wr)
 ) ;
 
 pp11 paper_punch(
@@ -606,7 +600,6 @@ lp11 printer(
 reg [1:0] rk_sdreq_filter;
 reg [1:0] rl11_sdreq_filter;
 reg [1:0] rh70_sdreq_filter;
-reg [1:0] pr11_sdreq_filter;
 reg [1:0] pp11_sdreq_filter;
 
 // фильтрация сигналов запроса
@@ -620,9 +613,6 @@ always @(posedge sdclock) begin
   rh70_sdreq_filter[0] = rh70_sdreq;
   rh70_sdreq_filter[1] = rh70_sdreq_filter[0];
 
-  pr11_sdreq_filter[0] = pr11_sdreq;
-  pr11_sdreq_filter[1] = pr11_sdreq_filter[0];
-
   pp11_sdreq_filter[0] = pp11_sdreq;
   pp11_sdreq_filter[1] = pp11_sdreq_filter[0];
 end  
@@ -633,17 +623,14 @@ always @(posedge sdclock) begin
       rk_sdack <= 1'b0;
 		rl11_sdack <= 1'b0 ;
 		rh70_sdack <= 1'b0 ;
-		pr11_sdack <= 1'b0 ;
 		pp11_sdack <= 1'b0 ;
-   end else if ((rk_sdack == 1'b0) && (rl11_sdack == 1'b0) && (rh70_sdack == 1'b0) && (pr11_sdack == 1'b0) && (pp11_sdack == 1'b0)) begin // поиск контроллера, желающего доступ к карте
+   end else if ((rk_sdack == 1'b0) && (rl11_sdack == 1'b0) && (rh70_sdack == 1'b0) && (pp11_sdack == 1'b0)) begin // поиск контроллера, желающего доступ к карте
       if (rk_sdreq_filter[1] == 1'b1) // неактивное состояние - ищем источник запроса
 			rk_sdack <= 1'b1 ;
 		else if (rl11_sdreq_filter[1] == 1'b1)
 			rl11_sdack <= 1'b1 ;
 		else if (rh70_sdreq_filter[1] == 1'b1)
 			rh70_sdack <= 1'b1 ;
-		else if (pr11_sdreq_filter[1] == 1'b1)
-			pr11_sdack <= 1'b1 ;
 		else if (pp11_sdreq_filter[1] == 1'b1)
 			pp11_sdack <= 1'b1 ;
    end else // активное состояние - ждем освобождения карты
@@ -653,8 +640,6 @@ always @(posedge sdclock) begin
 			rl11_sdack <= 1'b0;
 		else if ((rh70_sdack == 1'b1) && (rh70_sdreq_filter[1] == 1'b0))
 			rh70_sdack <= 1'b0;
-		else if ((pr11_sdack == 1'b1) && (pr11_sdreq_filter[1] == 1'b0))
-			pr11_sdack <= 1'b0;
 		else if ((pp11_sdack == 1'b1) && (pp11_sdreq_filter[1] == 1'b0))
 			pp11_sdack <= 1'b0;
 end
@@ -664,7 +649,6 @@ end
 //**********************************
 assign sdcard_mosi =
 			pp11_sdack ? pp11_mosi :
-			pr11_sdack ? pr11_mosi :
 			rh70_sdack ? rh70_mosi :
 			rl11_sdack ? rl11_mosi :
          rk_sdack   ? rk_mosi   : // RK
@@ -672,7 +656,6 @@ assign sdcard_mosi =
 
 assign sdcard_cs =
 			pp11_sdack ? pp11_cs :
-			pr11_sdack ? pr11_cs :
 			rh70_sdack ? rh70_cs :
 			rl11_sdack ? rl11_cs :
          rk_sdack   ? rk_cs   :   // RK
@@ -680,7 +663,6 @@ assign sdcard_cs =
                    
 wire sdclk =
 			pp11_sdack ? pp11_sclk :
-			pr11_sdack ? pr11_sclk :
 			rh70_sdack ? rh70_sclk :
 			rl11_sdack ? rl11_sclk :
          rk_sdack   ? rk_sclk   :   // RK
@@ -700,7 +682,7 @@ ODDR2(
 //********************************************
 //* Светодиоды дисковой активности
 //********************************************
-assign disk_led = rk_sdreq | pr11_sdreq | pp11_sdreq | rl11_sdreq | rh70_sdreq ;   // запрос обмена диска
+assign disk_led = rk_sdreq | pp11_sdreq | rl11_sdreq | rh70_sdreq ;   // запрос обмена диска
 
 //************************************************
 //*  Контроллеры прерываний
