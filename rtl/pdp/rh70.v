@@ -46,8 +46,10 @@ module rh70 (
    input                  sdclock,   
 
 // Адрес начала банка на карте
-   input [26:0]           start_offset
-   ); 
+   input [26:0]           start_offset,
+	output 			 		  master_sdhc,
+	input				 		  slave_sdhc
+); 
 
    
 // Геометрия диска
@@ -386,6 +388,8 @@ sdspi sd1 (
       .sdcard_mosi(sdcard_mosi), 
       .sdcard_miso(sdcard_miso),
       .sdcard_sclk(sdcard_sclk),
+		.master_sdhc(master_sdhc),
+		.slave_sdhc(slave_sdhc),
       
       .sdcard_addr(sdcard_addr),                  // адрес блока на карте
       .sdcard_idle(sdcard_idle),                  // сигнал готовности модуля к обмену
